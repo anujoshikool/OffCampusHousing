@@ -1,0 +1,71 @@
+#version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: offcampusdb 
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Redis
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - app-network
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend/OffCampusHousing
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/offcampusdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend/offcampus-housing-frontend
+      dockerfile: Dockerfile
+    environment:
+      REACT_APP_API_URL: http://backend:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+# Volumes for persistent data
+volumes:
+  db-data:
+  redis-data:
+
+# Network for communication between containers
+networks:
+  app-network:
+    driver: bridge
