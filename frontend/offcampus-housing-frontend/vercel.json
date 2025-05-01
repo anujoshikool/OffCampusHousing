@@ -1,0 +1,38 @@
+{
+    "rewrites": [
+       {
+        "source": "/cancel",
+        "destination": "/index.html"
+      },
+       {
+        "source": "/success",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/auth/reset-password",
+        "destination": "/index.html",
+        "has": [
+          {
+            "type": "header",
+            "key": "sec-fetch-dest",
+            "value": "document"
+          }
+        ]
+      },
+      {
+        "source": "/auth/reset-password",
+        "destination": "http://54.234.44.51:8080/auth/reset-password",
+        "has": [
+          {
+            "type": "header",
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ]
+      },
+      {
+        "source": "/:path*",
+        "destination": "http://54.234.44.51:8080/:path*"
+      }
+    ]
+  }
